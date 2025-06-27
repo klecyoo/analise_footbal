@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Análise de Futebol - Odds 1.25</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-futbol"></i>
+                    <span>FootballAnalytics</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-menu">
+                <a href="#dashboard" class="menu-item active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#teams" class="menu-item" data-section="teams">
+                    <i class="fas fa-users"></i>
+                    <span>Equipas</span>
+                </a>
+                <a href="#matches" class="menu-item" data-section="matches">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Partidas</span>
+                </a>
+                <a href="#odds125" class="menu-item" data-section="odds125">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Odds 1.25</span>
+                </a>
+                <a href="#analysis" class="menu-item" data-section="analysis">
+                    <i class="fas fa-analytics"></i>
+                    <span>Análise Avançada</span>
+                </a>
+                <a href="#performance" class="menu-item" data-section="performance">
+                    <i class="fas fa-trophy"></i>
+                    <span>Performance</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <h1 id="page-title">Dashboard</h1>
+                    <p id="page-subtitle">Visão geral do sistema de análise</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-primary" onclick="syncData()">
+                        <i class="fas fa-sync-alt"></i>
+                        Sincronizar Dados
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="content-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-teams">0</h3>
+                            <p>Equipas Analisadas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="total-matches">0</h3>
+                            <p>Partidas Processadas</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="success-rate">0%</h3>
+                            <p>Taxa de Sucesso</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="roi">0%</h3>
+                            <p>ROI Médio</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Oportunidades Hoje</h3>
+                            <button class="btn btn-sm" onclick="refreshOpportunities()">
+                                <i class="fas fa-refresh"></i>
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div id="today-opportunities" class="opportunities-list">
+                                <div class="loading">Carregando...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Performance Recente</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="performance-chart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Teams Section -->
+            <section id="teams-section" class="content-section">
+                <div class="section-header">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="team-search" placeholder="Procurar equipas...">
+                    </div>
+                    <button class="btn btn-primary" onclick="calculateAllStats()">
+                        <i class="fas fa-calculator"></i>
+                        Calcular Estatísticas
+                    </button>
+                </div>
+                
+                <div class="teams-grid" id="teams-grid">
+                    <div class="loading">Carregando equipas...</div>
+                </div>
+            </section>
+
+            <!-- Matches Section -->
+            <section id="matches-section" class="content-section">
+                <div class="section-header">
+                    <div class="filter-bar">
+                        <select id="championship-filter">
+                            <option value="">Todos os Campeonatos</option>
+                        </select>
+                        <select id="status-filter">
+                            <option value="">Todos os Status</option>
+                            <option value="finalizado">Finalizados</option>
+                            <option value="agendado">Agendados</option>
+                            <option value="ao-vivo">Ao Vivo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="matches-table-container">
+                    <table class="matches-table" id="matches-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Casa</th>
+                                <th>Resultado</th>
+                                <th>Visitante</th>
+                                <th>Campeonato</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matches-tbody">
+                            <tr>
+                                <td colspan="7" class="loading">Carregando partidas...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Odds 1.25 Section -->
+            <section id="odds125-section" class="content-section">
+                <div class="odds-header">
+                    <div class="odds-controls">
+                        <div class="control-group">
+                            <label>Bankroll (€)</label>
+                            <input type="number" id="bankroll-input" value="1000" min="100" max="10000">
+                        </div>
+                        <div class="control-group">
+                            <label>Campeonato</label>
+                            <select id="odds-championship">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="findOdds125Opportunities()">
+                            <i class="fas fa-search"></i>
+                            Encontrar Oportunidades
+                        </button>
+                    </div>
+                </div>
+
+                <div class="odds-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recomendações Diárias</h3>
+                            <span class="badge" id="recommendations-count">0</span>
+                        </div>
+                        <div class="card-content">
+                            <div id="daily-recommendations" class="recommendations-list">
+                                <div class="empty-state">
+                                    <i class="fas fa-chart-line"></i>
+                                    <p>Clique em "Encontrar Oportunidades" para ver recomendações</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Calculadora de Apostas</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="calculator">
+                                <div class="calc-input">
+                                    <label>Valor da Aposta (€)</label>
+                                    <input type="number" id="calc-stake" value="100" min="1">
+                                </div>
+                                <div class="calc-input">
+                                    <label>Confiança (%)</label>
+                                    <input type="number" id="calc-confidence" value="80" min="1" max="100">
+                                </div>
+                                <button class="btn btn-secondary" onclick="calculateBet()">Calcular</button>
+                                
+                                <div id="calc-results" class="calc-results" style="display: none;">
+                                    <div class="result-item">
+                                        <span>Lucro Potencial:</span>
+                                        <span id="calc-profit">€0</span>
+                                    </div>
+                                    <div class="result-item">
+                                        <span>Valor Esperado:</span>
+                                        <span id="calc-ev">€0</span>
+                                    </div>
+                                    <div class="result-item">
+                                        <span>ROI:</span>
+                                        <span id="calc-roi">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Análise de Mercado</h3>
+                        <button class="btn btn-sm" onclick="loadMarketAnalysis()">
+                            <i class="fas fa-refresh"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <div id="market-analysis" class="market-analysis">
+                            <div class="loading">Carregando análise de mercado...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analysis Section -->
+            <section id="analysis-section" class="content-section">
+                <div class="analysis-header">
+                    <div class="team-selector">
+                        <div class="team-input">
+                            <label>Equipa da Casa</label>
+                            <select id="home-team-select">
+                                <option value="">Selecionar equipa...</option>
+                            </select>
+                        </div>
+                        <div class="vs-divider">VS</div>
+                        <div class="team-input">
+                            <label>Equipa Visitante</label>
+                            <select id="away-team-select">
+                                <option value="">Selecionar equipa...</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="analyzeMatch()">
+                            <i class="fas fa-analytics"></i>
+                            Analisar
+                        </button>
+                    </div>
+                </div>
+
+                <div id="match-analysis-results" class="analysis-results" style="display: none;">
+                    <div class="analysis-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Probabilidades</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="probability-bars" id="probability-bars">
+                                    <!-- Será preenchido dinamicamente -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Métricas das Equipas</h3>
+                            </div>
+                            <div class="card-content">
+                                <div id="team-metrics" class="team-comparison">
+                                    <!-- Será preenchido dinamicamente -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Recomendação</h3>
+                            </div>
+                            <div class="card-content">
+                                <div id="match-recommendation" class="recommendation">
+                                    <!-- Será preenchido dinamicamente -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance Section -->
+            <section id="performance-section" class="content-section">
+                <div class="performance-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Métricas Gerais</h3>
+                            <select id="performance-period">
+                                <option value="7">Últimos 7 dias</option>
+                                <option value="30" selected>Últimos 30 dias</option>
+                                <option value="90">Últimos 90 dias</option>
+                            </select>
+                        </div>
+                        <div class="card-content">
+                            <div id="performance-metrics" class="metrics-grid">
+                                <div class="loading">Carregando métricas...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Tendências</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="trends-chart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Processando...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
